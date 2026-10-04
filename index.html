@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作り置き冷凍スープの「パキッと割り氷」パズルメーカー</title>
+    <style>
+        :root {
+            --primary: #FF7043;
+            --primary-light: #FFCCBC;
+            --primary-dark: #F4511E;
+            --secondary: #26A69A;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text-main: #37474F;
+            --text-sub: #78909C;
+            --border: #CFD8DC;
+            --radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--text-main);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        /* シミュレーター・ビジュアルエリア */
+        .simulator-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .container-box {
+            position: relative;
+            background: #E0F2F1;
+            border: 4px solid #00897B;
+            border-radius: 8px;
+            padding: 10px;
+            display: grid;
+            gap: 4px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+            max-width: 100%;
+            overflow: auto;
+        }
+
+        .ice-cell {
+            background: linear-gradient(135deg, #80CBC4, #4DB6AC);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .ice-cell:hover {
+            filter: brightness(1.1);
+        }
+
+        /* 割り方ステップ */
+        .steps-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .step-card {
+            background: #FFF3E0;
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .step-card strong {
+            color: var(--primary-dark);
+        }
+
+        /* 分析・注意書き */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .info-box {
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info-box .label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        .info-box .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-top: 4px;
+        }
+
+        .warning-box {
+            background: #FFEBEE;
+            color: #C62828;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            パキッと割り氷パズルメーカー
+        </h1>
+        <p>タッパーで固めた作り置きを、使いたい分だけストレスなく折るための最適分割計算ツール</p>
+    </header>
+
+    <!-- 入力セクション -->
+    <div class="card">
+        <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            保存容器とレシピの設定
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="totalVolume">総作成量 (ml または g)</label>
+                <input type="number" id="totalVolume" value="600" min="50" step="50">
+                <div class="presets">
+                    <button class="preset-btn" onclick="setVal('totalVolume', 400)">400ml</button>
+                    <button class="preset-btn" onclick="setVal('totalVolume', 600)">600ml</button>
+                    <button class="preset-btn" onclick="setVal('totalVolume', 800)">800ml</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="targetDose">1回分の必要量 (ml または g)</label>
+                <input type="number" id="targetDose" value="150" min="10" step="10">
+                <div class="presets">
+                    <button class="preset-btn" onclick="setVal('targetDose', 100)">100ml (離乳食)</button>
+                    <button class="preset-btn" onclick="setVal('targetDose', 150)">150ml (スープ)</button>
+                    <button class="preset-btn" onclick="setVal('targetDose', 200)">200ml (主菜)</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="containerType">容器の形状</label>
+                <select id="containerType">
+                    <option value="square">正方形タッパー (縦横比 1:1)</option>
+                    <option value="rectangle">長方形タッパー (縦横比 1:1.5)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- シミュレーション・出力セクション -->
+    <div class="card">
+        <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            パキッと割り設計図 & 手順
+        </div>
+        
+        <div class="simulator-area">
+            <!-- ビジュアル表示 -->
+            <div id="containerBox" class="container-box">
+                <!-- JSでセルを生成 -->
+            </div>
+
+            <!-- 分析データ -->
+            <div class="info-grid" style="width: 100%;">
+                <div class="info-box">
+                    <div class="label">推奨分割数</div>
+                    <div class="value" id="resBlocks">-</div>
+                </div>
+                <div class="info-box">
+                    <div class="label">1ブロックの容量</div>
+                    <div class="value" id="resBlockSize">-</div>
+                </div>
+                <div class="info-box">
+                    <div class="label">誤差率</div>
+                    <div class="value" id="resError">-</div>
+                </div>
+            </div>
+
+            <!-- 割り方ステップ -->
+            <div class="steps-container" id="stepsContainer">
+                <!-- JSで生成 -->
+            </div>
+
+            <!-- 注意書き -->
+            <div class="warning-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+                <div>
+                    <strong>キレイにパキッと折るコツ：</strong> 
+                    冷凍庫から出した直後は硬すぎたり割れ目が入りづらいため、室温で<strong>1〜2分置く（または容器の底をぬるま湯に数秒つける）</strong>と、ジップロックやタッパーからスルッと取り出せ、狙ったラインで綺麗に折れます。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM要素
+    const totalVolumeInput = document.getElementById('totalVolume');
+    const targetDoseInput = document.getElementById('targetDose');
+    const containerTypeSelect = document.getElementById('containerType');
+    
+    const containerBox = document.getElementById('containerBox');
+    const resBlocks = document.getElementById('resBlocks');
+    const resBlockSize = document.getElementById('resBlockSize');
+    const resError = document.getElementById('resError');
+    const stepsContainer = document.getElementById('stepsContainer');
+
+    // プリセット用ヘルパー
+    function setVal(id, val) {
+        document.getElementById(id).value = val;
+        calculate();
+    }
+
+    // ローカルストレージ保存
+    function saveState() {
+        const state = {
+            totalVolume: totalVolumeInput.value,
+            targetDose: targetDoseInput.value,
+            containerType: containerTypeSelect.value
+        };
+        localStorage.setItem('pakitto_state', JSON.stringify(state));
+    }
+
+    // ローカルストレージ読み込み
+    function loadState() {
+        const saved = localStorage.getItem('pakitto_state');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                totalVolumeInput.value = state.totalVolume ?? 600;
+                targetDoseInput.value = state.targetDose ?? 150;
+                containerTypeSelect.value = state.containerType ?? 'square';
+            } catch(e) {}
+        }
+    }
+
+    // メイン計算ロジック
+    function calculate() {
+        saveState();
+
+        const total = parseFloat(totalVolumeInput.value) || 0;
+        const target = parseFloat(targetDoseInput.value) || 0;
+        const type = containerTypeSelect.value;
+
+        if (total <= 0 || target <= 0) return;
+
+        // 最適なブロック数を算出（ターゲットに最も近くなるような整数分割を模索）
+        let bestCols = 1;
+        let bestRows = 1;
+        let minDiff = Infinity;
+
+        // グリッドの総ブロック数を 1 〜 30 の間で探索
+        for (let cols = 1; cols <= 6; cols++) {
+            for (let rows = 1; rows <= 6; rows++) {
+                const totalBlocks = cols * rows;
+                const blockSize = total / totalBlocks;
+                
+                // ターゲットの何倍（または何個分）にするのが一番近いか
+                // 離乳食やスープは「1回に1〜3ブロック使う」運用を想定
+                for (let count = 1; count <= totalBlocks; count++) {
+                    const doseEstimate = blockSize * count;
+                    const diff = Math.abs(doseEstimate - target);
+                    
+                    // アスペクト比の自然さも考慮（極端な縦長横長を避ける）
+                    const shapeFactor = type === 'square' ? Math.abs(cols - rows) * 2 : Math.abs((cols / rows) - 1.5) * 5;
+
+                    const score = diff + shapeFactor;
+
+                    if (score < minDiff) {
+                        minDiff = score;
+                        bestCols = cols;
+                        bestRows = rows;
+                    }
+                }
+            }
+        }
+
+        const totalBlocks = bestCols * bestRows;
+        const exactBlockSize = total / totalBlocks;
+        
+        // 何個使うのがベストか再計算
+        let bestCount = Math.round(target / exactBlockSize);
+        if (bestCount < 1) bestCount = 1;
+        if (bestCount > totalBlocks) bestCount = totalBlocks;
+
+        const actualDose = exactBlockSize * bestCount;
+        const errorPercent = ((actualDose - target) / target) * 100;
+
+        // UI反映
+        resBlocks.textContent = `${totalBlocks} ブロック`;
+        resBlockSize.textContent = `${Math.round(exactBlockSize)} ml/g`;
+        resError.textContent = `${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(1)}% (1回 ${bestCount}個使用)`;
+
+        renderVisualGrid(bestCols, bestRows, exactBlockSize);
+        renderSteps(bestCols, bestRows, bestCount, exactBlockSize, actualDose);
+    }
+
+    // ビジュアル描画
+    function renderVisualGrid(cols, rows, blockSize) {
+        containerBox.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        containerBox.innerHTML = '';
+
+        const boxWidth = Math.min(280, cols * 50);
+        containerBox.style.width = `${boxWidth}px`;
+
+        for (let i = 0; i < (cols * rows); i++) {
+            const cell = document.createElement('div');
+            cell.className = 'ice-cell';
+            cell.style.aspectRatio = '1 / 1';
+            cell.innerHTML = `<span>${Math.round(blockSize)}</span>`;
+            containerBox.appendChild(cell);
+        }
+    }
+
+    // 割り方ステップ生成
+    function renderSteps(cols, rows, count, blockSize, actualDose) {
+        let html = '';
+        
+        html += `<div class="step-card"><strong>ステップ 1: 容器からの取り出し</strong><br>タッパーの側面を軽く押すか、底をぬるま湯に2〜3秒あてて、凍った塊全体をツルッと取り出します。</div>`;
+
+        if (cols > 1 && rows > 1) {
+            html += `<div class="step-card"><strong>ステップ 2: まず大きく分ける</strong><br>まず縦または横の溝（ライン）に沿って、<strong>${cols}列 × ${rows}行</strong>のブロック群を大きくパキッと折り分けます。</div>`;
+        }
+
+        html += `<div class="step-card"><strong>ステップ 3: 必要分を取り出す</strong><br>1ブロック約 <strong>${Math.round(blockSize)}ml</strong> なので、本日は <strong>${count}個（合計約 ${Math.round(actualDose)}ml）</strong> をパキッと折って取り出してください。</div>`;
+
+        html += `<div class="step-card"><strong>ステップ 4: 残りの保存</strong><br>使わなかった残りのブロックは、ジッパー付き保存袋に入れて空気を抜いて冷凍庫へ戻すと、霜がつきにくくなります。</div>`;
+
+        stepsContainer.innerHTML = html;
+    }
+
+    // イベントリスナー
+    totalVolumeInput.addEventListener('input', calculate);
+    targetDoseInput.addEventListener('input', calculate);
+    containerTypeSelect.addEventListener('change', calculate);
+
+    // 初期化実行
+    loadState();
+    calculate();
+</script>
+
+</body>
+</html>
